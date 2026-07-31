@@ -1,0 +1,23 @@
+Write ONE page of the static website "{{site_title}}" in Quarto-flavored
+markdown. Ground every claim ONLY in the material below.
+
+Page: {{page.title}}
+Must cover: {{page.summary}}
+{% if is_home %}This is the HOME page: welcome the visitor, summarize what the site covers, and link to the other pages using relative links like [Page Title](slug.html).{% endif %}
+
+Site pages (for internal links, href = slug + ".html"; the first page is index.html):
+{% for p in all_pages %}- {{p.title}} → {{p.slug}}.html
+{% endfor %}
+
+Rules:
+- Markdown BODY ONLY: no YAML front matter, no top-level H1 (the title renders from front matter), start at ## sections.
+- Use headings, short paragraphs, lists and tables where they genuinely help.
+- Link related site pages inline where natural.
+- No invented facts, no external links unless they appear in the material.
+{% if instructions %}- User instructions: {{instructions}}{% endif %}
+{% if language %}- Write in this language: {{language}}.{% endif %}
+
+Respond with ONLY the markdown body, no fences, no commentary.
+
+MATERIAL:
+{{content}}
