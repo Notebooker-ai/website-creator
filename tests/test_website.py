@@ -140,7 +140,7 @@ async def test_no_text_role_is_failure():
 
 
 @pytest.mark.asyncio
-async def test_duplicate_slugs_deduped_and_bad_theme_falls_back():
+async def test_duplicate_slugs_deduped():
     creator = WebsiteCreator()
     pages = [
         {"title": "Same", "slug": "same", "summary": "", "source_ids": []},
@@ -148,11 +148,24 @@ async def test_duplicate_slugs_deduped_and_bad_theme_falls_back():
     ]
     with tempfile.TemporaryDirectory() as td:
         result = await creator.generate(
-            _request(td, [_outline(pages), _BODY, _BODY], config={"num_pages": 2, "theme": "not-a-theme"})
+            _request(td, [_outline(pages), _BODY, _BODY], config={"num_pages": 2})
         )
         slugs = [p["slug"] for p in result.data["pages"]]
         assert len(set(slugs)) == len(slugs)
-        assert result.data["theme"] == "cosmo"
+
+
+def test_theme_is_an_enum_for_the_generate_form():
+    """`theme` must surface as a JSON-schema enum so the host renders a
+    dropdown of valid Bootswatch themes instead of a free-text field."""
+    schema = WebsiteConfig.model_json_schema()
+    theme_schema = schema["properties"]["theme"]
+    enum = theme_schema.get("enum") or [
+        s["const"] for s in theme_schema.get("anyOf", []) if "const" in s
+    ]
+    assert "cosmo" in enum and "darkly" in enum and len(enum) == 10
+
+    with pytest.raises(Exception):
+        WebsiteConfig.model_validate({"theme": "not-a-theme"})
 
 
 @pytest.mark.asyncio

@@ -18,7 +18,7 @@ import shutil
 import zipfile
 from importlib import resources
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Literal, Optional
 
 from ai_prompter import Prompter
 from loguru import logger
@@ -34,15 +34,16 @@ from open_notebook_creator_sdk import (
 from open_notebook_creator_sdk.schemas.website_v1 import WebsitePage, WebsiteV1
 from pydantic import BaseModel, Field
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 SCHEMA_ID = "website.v1"
 _MAX_CONCURRENT_PAGES = 4
 _RENDER_TIMEOUT_S = 600
-_THEMES = {
+Theme = Literal[
     "cosmo", "flatly", "litera", "journal", "minty", "pulse",
     "sandstone", "zephyr", "darkly", "cyborg",
-}
+]
+_THEMES = set(Theme.__args__)
 
 
 class WebsiteConfig(BaseModel):
@@ -51,12 +52,9 @@ class WebsiteConfig(BaseModel):
     num_pages: int = Field(
         default=6, ge=2, le=15, description="How many pages (including the home page)"
     )
-    theme: str = Field(
+    theme: Theme = Field(
         default="cosmo",
-        description=(
-            "Bootswatch theme: cosmo, flatly, litera, journal, minty, pulse, "
-            "sandstone, zephyr, darkly, cyborg"
-        ),
+        description="Bootswatch theme for the site's look and feel",
     )
     include_search: bool = Field(default=True, description="Built-in site search")
     include_sidebar: bool = Field(
