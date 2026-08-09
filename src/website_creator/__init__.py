@@ -177,6 +177,10 @@ class WebsiteCreator(BaseCreator):
                 )
             ],
             icon="globe",
+            suggestion_hint=(
+                "the site structure: which sections or pages to create and what each "
+                "should communicate"
+            ),
         )
 
     async def generate(self, request: CreationRequest) -> CreationResult:
