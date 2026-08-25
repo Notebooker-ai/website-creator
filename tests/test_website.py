@@ -193,3 +193,23 @@ async def test_rendered_zip_contains_site():
             names = zf.namelist()
             assert "index.html" in names
             assert "deep-topic.html" in names
+
+
+def test_manifest_declares_view_bundle_and_it_ships():
+    """Without a view bundle the notebook panel dumped raw JSON ("No renderer
+    available") and the site zip was unreachable — the view flips the host to
+    plugin-view mode, which also surfaces the zip download."""
+    from importlib import resources
+
+    from website_creator import WebsiteCreator
+
+    m = WebsiteCreator().manifest
+    assert m.view is not None
+    assert m.view.entry == "view/index.html"
+    asset = resources.files("website_creator").joinpath(m.view.entry)
+    assert asset.is_file()
+    html = asset.read_text()
+    assert "open-notebook:ready" in html
+    assert "open-notebook:artifact" in html
+    assert "website.v1" in html
+    assert 'src="http' not in html  # self-contained, nothing loads remotely

@@ -29,12 +29,13 @@ from open_notebook_creator_sdk import (
     CreationRequest,
     CreationResult,
     CreatorManifest,
+    CreatorView,
     ModelRoleSpec,
 )
 from open_notebook_creator_sdk.schemas.website_v1 import WebsitePage, WebsiteV1
 from pydantic import BaseModel, Field
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 SCHEMA_ID = "website.v1"
 _MAX_CONCURRENT_PAGES = 4
@@ -181,6 +182,10 @@ class WebsiteCreator(BaseCreator):
                 "the site structure: which sections or pages to create and what each "
                 "should communicate"
             ),
+            # Site card: title/pages/published URL. The rendered site itself is
+            # the attached zip — declaring a view also makes the host surface
+            # the zip's download button and "open in new tab".
+            view=CreatorView(entry="view/index.html"),
         )
 
     async def generate(self, request: CreationRequest) -> CreationResult:

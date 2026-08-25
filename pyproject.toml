@@ -1,6 +1,6 @@
 [project]
 name = "website-creator"
-version = "0.1.1"
+version = "0.2.0"
 license = "MIT"
 description = "Open Notebook creator: a multi-page static website (Quarto) built from notebook sources, deployable or publishable from storage"
 readme = "README.md"

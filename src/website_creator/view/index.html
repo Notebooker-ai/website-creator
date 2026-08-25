@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Website</title>
+<!--
+  website-creator view bundle. Self-contained (no external deps, no CDN) so it
+  runs in the host's sandboxed, opaque-origin iframe. The host posts the
+  artifact in via postMessage; this view dispatches on schema_id and renders.
+
+  The substance of a website.v1 artifact is the rendered Quarto site zip
+  attached as a file (label "site") — the sandboxed frame can never fetch it,
+  so this view is a site card: title, description, theme, the page inventory,
+  and the published URL once the host has published it. The host renders the
+  zip's download button and the Publish flow around this frame.
+-->
+<style>
+  :root {
+    --bg: #ffffff; --fg: #18181b; --muted: #71717a; --card: #fafafa;
+    --border: #e4e4e7; --accent: #4f46e5; --accent-fg: #ffffff;
+  }
+  :root[data-theme="dark"] {
+    --bg: #18181b; --fg: #fafafa; --muted: #a1a1aa; --card: #27272a;
+    --border: #3f3f46; --accent: #6366f1; --accent-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  h1.title { font-size: 20px; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--muted); font-size: 12px;
+  }
+  a.published {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    background: var(--accent); color: var(--accent-fg); font-size: 12px;
+    text-decoration: none;
+  }
+  .pages { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .page {
+    border: 1px solid var(--border); background: var(--card);
+    border-radius: 10px; padding: 10px 14px;
+  }
+  .page .name { font-weight: 600; }
+  .page .slug {
+    color: var(--muted); font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    margin-left: 6px;
+  }
+  .page .summary { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 14px; }
+  .empty { color: var(--muted); padding: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="root"><div class="empty">Loading…</div></div>
+<script>
+(function () {
+  "use strict";
+  var root = document.getElementById("root");
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // website.v1: { title, description, theme, pages[], published_url? }
+  function renderWebsiteV1(data) {
+    var pages = Array.isArray(data.pages) ? data.pages : [];
+    var head = "";
+    if (data.title) head += '<h1 class="title">' + esc(data.title) + "</h1>";
+    if (data.description) head += '<p class="subtitle">' + esc(data.description) + "</p>";
+
+    var meta = '<div class="meta">';
+    meta += '<span class="badge">' + pages.length + " page" + (pages.length === 1 ? "" : "s") + "</span>";
+    if (data.theme) meta += '<span class="badge">theme: ' + esc(data.theme) + "</span>";
+    if (data.published_url) {
+      meta += '<a class="published" href="' + esc(data.published_url) + '" target="_blank" rel="noopener noreferrer">View published site</a>';
+    }
+    meta += "</div>";
+
+    var list = pages.map(function (p) {
+      p = p || {};
+      var item = '<li class="page"><span class="name">' + esc(p.title || "Untitled page") + "</span>";
+      if (p.slug) item += '<span class="slug">/' + esc(p.slug) + "</span>";
+      if (p.summary) item += '<div class="summary">' + esc(p.summary) + "</div>";
+      return item + "</li>";
+    }).join("");
+
+    var hint = data.published_url
+      ? ""
+      : '<p class="hint">The full rendered site is in the attached zip — download it above, or publish it to get a shareable URL.</p>';
+
+    if (!head && !list) {
+      root.innerHTML = '<div class="empty">This website artifact is empty.</div>';
+      return;
+    }
+    root.innerHTML = head + meta + '<ul class="pages">' + list + "</ul>" + hint;
+  }
+
+  var renderers = {
+    "website.v1": renderWebsiteV1,
+  };
+
+  // ---- host handshake ------------------------------------------------------
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  }
+
+  function resolveTheme(msg) {
+    var t = "auto";
+    if (t === "auto") t = msg.theme === "dark" ? "dark" : "light";
+    return t;
+  }
+
+  function onArtifact(msg) {
+    applyTheme(resolveTheme(msg));
+    var r = renderers[msg.schema_id];
+    if (!r) {
+      root.innerHTML = '<div class="empty">No renderer for "' + esc(msg.schema_id) + '".</div>';
+      return;
+    }
+    try { r(msg.data || {}); }
+    catch (e) { root.innerHTML = '<div class="empty">Failed to render this artifact.</div>'; }
+  }
+
+  window.addEventListener("message", function (e) {
+    var d = e.data;
+    if (d && d.type === "open-notebook:artifact") onArtifact(d);
+  });
+  // Tell the host we're listening; it (re)posts the artifact in response.
+  try { parent.postMessage({ type: "open-notebook:ready" }, "*"); } catch (e) {}
+})();
+</script>
+</body>
+</html>
