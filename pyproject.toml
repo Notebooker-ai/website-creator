@@ -31,7 +31,7 @@ build-backend = "hatchling.build"
 packages = ["src/website_creator"]
 
 [tool.uv.sources]
-open-notebook-creator-sdk = { git = "https://github.com/Notebooker-ai/open-notebook-creator-sdk.git", rev = "1a5cf1ecc3d9571ed2f317fe35eddd2e799539db" }
+open-notebook-creator-sdk = { git = "https://github.com/Notebooker-ai/open-notebook-creator-sdk.git", rev = "59d39d7429fd603915ae25a8ef876361518b8d77" }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

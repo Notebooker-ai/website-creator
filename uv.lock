@@ -437,8 +437,8 @@ wheels = [
 
 [[package]]
 name = "open-notebook-creator-sdk"
-version = "0.11.0"
-source = { git = "https://github.com/Notebooker-ai/open-notebook-creator-sdk.git?rev=1a5cf1ecc3d9571ed2f317fe35eddd2e799539db#1a5cf1ecc3d9571ed2f317fe35eddd2e799539db" }
+version = "0.12.0"
+source = { git = "https://github.com/Notebooker-ai/open-notebook-creator-sdk.git?rev=59d39d7429fd603915ae25a8ef876361518b8d77#59d39d7429fd603915ae25a8ef876361518b8d77" }
 dependencies = [
     { name = "packaging" },
     { name = "pydantic" },
@@ -1068,7 +1068,7 @@ requires-dist = [
     { name = "esperanto", specifier = ">=2.19" },
     { name = "langchain-core", specifier = ">=0.3" },
     { name = "loguru", specifier = ">=0.7" },
-    { name = "open-notebook-creator-sdk", git = "https://github.com/Notebooker-ai/open-notebook-creator-sdk.git?rev=1a5cf1ecc3d9571ed2f317fe35eddd2e799539db" },
+    { name = "open-notebook-creator-sdk", git = "https://github.com/Notebooker-ai/open-notebook-creator-sdk.git?rev=59d39d7429fd603915ae25a8ef876361518b8d77" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
